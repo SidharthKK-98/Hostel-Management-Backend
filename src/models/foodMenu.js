@@ -5,6 +5,7 @@ const foodMenuSchema= new mongoose.Schema({
     name:{
         type:String,
         required:true,
+        unique:true,
         trim:true
     },
     image:{
@@ -19,12 +20,8 @@ const foodMenuSchema= new mongoose.Schema({
     price:{
         type:Number,
         required:true
-    },
-    mealType:{
-        type:String,
-        enum:["morning","noon","night"],
-        required:true
     }
+    
 
 },{timestamps:true})
 

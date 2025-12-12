@@ -3,6 +3,7 @@ const { userAuth } = require("../middlewares/auth")
 const multerMiddleware = require("../middlewares/multer")
 const cloudinary=require("../config/cloudinary")
 const FoodMenu=require("../models/foodMenu")
+const DailyMenu=require("../models/dailyMenu")
 const fs=require("fs")
 foodMenuRoute=express.Router()
 
@@ -11,7 +12,12 @@ foodMenuRoute.post("/foodMenu/addFoodItem",userAuth,multerMiddleware.single("foo
 
     try{
 
-        const {name,price,mealType}=req.body
+        const {name,price}=req.body
+        const foodName= await FoodMenu.findOne({name:{ $regex: new RegExp(`^${name}$`, "i") }})
+
+        if(foodName){
+            return res.status(401).json({message:"The Item is already added"})
+        }
 
         if(!req.file){
             return res.status(400).json({message:"Food image is required"})
@@ -26,7 +32,6 @@ foodMenuRoute.post("/foodMenu/addFoodItem",userAuth,multerMiddleware.single("foo
 
                 name,
                 price,
-                mealType,
                 image:result.secure_url,
                 publicId:result.public_id
         })
@@ -85,7 +90,7 @@ foodMenuRoute.patch("/foodMenu/updateFoodItem/:foodItemId",userAuth,multerMiddle
         const foodItem = await FoodMenu.findById(foodItemId)
 
         if(!foodItem){
-            return res.status(401).json({message:"No foo item found"})
+            return res.status(401).json({message:"No food item found"})
         }
 
         if(req.file){
@@ -119,6 +124,74 @@ foodMenuRoute.patch("/foodMenu/updateFoodItem/:foodItemId",userAuth,multerMiddle
         res.status(400).json({message:"something is wrong",error:err.message})
     }
 
+})
+
+
+foodMenuRoute.post("/dailyFoodMenu/setFood",userAuth,async(req,res)=>{
+
+    try{
+
+        const {date,morning,noon,night}= req.body
+        const requestedDate= new Date(date)
+        requestedDate.setHours(0, 0, 0, 0)
+
+        const today = new Date()
+        today.setHours(0, 0, 0, 0)
+
+        if(requestedDate <= today){
+            return res.status(400).json({message:"Today's Menu can't be updated "})
+        }
+
+        const existingDate = await DailyMenu.findOne({date:requestedDate})
+        if(existingDate){
+            return res.status(400).json({message:"Menu for this date is already created"})
+        }
+
+        const maxDate= new Date(today)
+        maxDate.setDate(maxDate.getDate()+7)
+
+        if(requestedDate > maxDate){
+            return res.status(400).json({message:"Menu can only be set for the next 7 days"})
+        }
+
+
+
+        const menu = new DailyMenu({
+            date:requestedDate,
+            morning:morning || [],
+            noon:noon || [],
+            night:night || [] ,
+            expiresAt:new Date(requestedDate.getTime()+2*24*60*60*1000)
+        
+            })
+
+        await menu.save()
+
+        res.status(200).json({message:`Menu added for ${requestedDate}`,data:menu})
+
+    }
+    catch(err){
+        res.status(400).json({message:"something went wrong",error:err.message})
+    }
+
+})
+
+foodMenuRoute.get("/dailyFoodMenu/getFoodMenu",userAuth,async(req,res)=>{
+
+    try{
+
+        const totalfoodMenu= await DailyMenu.find().populate("morning").populate("noon").populate("night")
+        if(!totalfoodMenu){
+            return res.status(400).json({message:"no menu is avaliable"})
+
+        }
+
+        res.status(200).json({message:"getting all food Menu",data:totalfoodMenu})
+
+    }
+    catch(err){
+        res.status(400).json({message:"something is wrong",error:err.message})
+    }
 })
 
 
