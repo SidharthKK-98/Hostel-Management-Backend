@@ -7,7 +7,7 @@ const authRoute=require("../src/routes/authRoute")
 const profileRoute=require("../src/routes/profile")
 const roomRouter = require("./routes/roomRoute")
 const foodMenuRoute=require("./routes/foodMenuRoute")
-
+const foodSelectionRoute=require("./routes/foodSelectionRoute")
 
 app.use(express.json())
 app.use(cookie())
@@ -18,6 +18,7 @@ app.use("/",authRoute)
 app.use("/",profileRoute)
 app.use("/",roomRouter)
 app.use("/",foodMenuRoute)
+app.use("/",foodSelectionRoute)
 
 
 
