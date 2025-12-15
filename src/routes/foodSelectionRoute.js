@@ -6,7 +6,6 @@ const User= require("../models/user")
 const FoodMenu=require("../models/foodMenu")
 const { userAuth } = require("../middlewares/auth")
 const { default: mongoose } = require("mongoose")
-const moment = require("moment-timezone")
 
 
 foodSelectionRoute.post("/foodSelction/selctFood",userAuth,async(req,res)=>{
