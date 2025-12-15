@@ -211,6 +211,7 @@ foodMenuRoute.patch("/dailyFoodMenu/updateFoodMenu/:FoodMenuId",userAuth,async(r
         const menuDate= new Date(menu.date)
         menuDate.setHours(0, 0, 0, 0);
 
+        console.log(menuDate,today);
         
         if(menuDate <= today){
             return res.status(403).json({message:"you can't update menu of today or previous days"})
