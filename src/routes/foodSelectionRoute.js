@@ -46,13 +46,11 @@ foodSelectionRoute.post("/foodSelction/selctFood",userAuth,async(req,res)=>{
              const nightData = validateItems(night)
 
              const allSelectedItems=[...morningData,...noonData,...nightData]
-             console.log(allSelectedItems);
              
 
              const selectedFoodIds= allSelectedItems.map((i)=>i.foodId)
 
              const selectedFoods = await FoodMenu.find({_id:{$in:selectedFoodIds}})
-             console.log(selectedFoods);
              
 
              let totalPrice = 0 
@@ -78,6 +76,79 @@ foodSelectionRoute.post("/foodSelction/selctFood",userAuth,async(req,res)=>{
 
              res.status(200).json({message:"Food Selected ",data:newSelection})
  
+    }
+    catch(err){
+        res.status(400).json({message:"something went wrong",error:err.message})
+    }
+
+})
+
+foodSelectionRoute.patch("/foodSelction/updateFood/:foodSelectionId",userAuth,async(req,res)=>{
+
+    try{
+
+        const {foodSelectionId} = req.params
+        const {morning=[],noon=[],night=[]} =req.body
+
+
+        const selectedFoodItems = await FoodSelection.findById(foodSelectionId)
+
+        if(!selectedFoodItems){
+            return res.status(400).json({message:"no such selection found"})
+        }
+
+        const date = new Date(selectedFoodItems.date)
+        date.setHours(0,0,0,0)
+        const today = new Date()
+        today.setHours(0,0,0,0)
+
+        if(date <= today){
+            return res.status(400).json({message:"you can't update today or previous day food selection"})
+        }
+
+        const validateItems=(items)=>
+            items.map((item)=>{
+                if(!item.foodId || !item.portion){
+                    throw new Error("foodId and portion are required")
+                }
+                return item
+            })
+
+             const morningData = validateItems(morning)
+             const noonData = validateItems(noon)
+             const nightData = validateItems(night)
+
+             const allSelectedItems=[...morningData,...noonData,...nightData]
+
+             const selectedFoodIds= allSelectedItems.map((i)=>i.foodId)
+
+             const selectedFoods = await FoodMenu.find({_id:{$in:selectedFoodIds}})
+             
+
+             let totalPrice = 0 
+
+             allSelectedItems.forEach((item)=>{
+
+                const food = selectedFoods.find((f)=> f._id.toString()===item.foodId)
+
+                if(food){
+
+                    totalPrice+=food.price*item.portion 
+                }
+             })
+
+             const updatedData = await FoodSelection.findByIdAndUpdate({_id:foodSelectionId},
+               { $set:{
+                morning:morningData,
+                noon:noonData,
+                night:nightData,
+                totalPrice
+                }
+            }
+             )
+
+             res.status(200).json({message:"food selection is updated",data:updatedData})
+
     }
     catch(err){
         res.status(400).json({message:"something went wrong",error:err.message})
@@ -158,12 +229,12 @@ foodSelectionRoute.get("/foodSelction/getByDate",userAuth,async(req,res)=>{
 
 })
 
-foodSelectionRoute.get("/foodSelction/getByUserId",userAuth,async(req,res)=>{
+foodSelectionRoute.get("/foodSelction/getByUserId/:userId",userAuth,async(req,res)=>{
 
     try{
 
         const {year,month} = req.body
-        const userId = req.user._id
+        const {userId} = req.params
 
         const user = await User.findById(userId)
         if(!user){
