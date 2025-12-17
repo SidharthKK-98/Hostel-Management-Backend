@@ -6,7 +6,7 @@ const complaintSchema = new mongoose.Schema({
     createdBy:{
         type:mongoose.Schema.Types.ObjectId,
         ref:"User",
-        requied:true
+        required:true
     },
     category:{
         type:String,
@@ -41,6 +41,35 @@ const complaintSchema = new mongoose.Schema({
     ]
 
 },{timestamps:true})
+
+complaintSchema.pre("save",function(next){
+    if(this.isNew){
+        this.timeline.push({
+            status:this.status,
+            message:`compaint on ${this.category} is created`,
+            updatedBy:this.createdBy
+        })
+    }
+
+    const STATUS_MESSAGES = {
+        IN_PROGRESS:`complaint noticed and action has been initiated on ${this.category}`,
+        RESOLVED: `Complaint has been resolved successfully on ${this.category}`
+    };
+
+
+    if(this.isModified("status") && !this.isNew){
+
+        const message = STATUS_MESSAGES[this.status] || `status updated to ${this.status}`
+        this.timeline.push({
+            status:this.status,
+            message,
+            updatedBy:this._updatedBy
+        })
+    }
+
+    next()
+
+})
 
 
 module.exports = mongoose.model("Complaint",complaintSchema)

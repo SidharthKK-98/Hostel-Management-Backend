@@ -8,6 +8,7 @@ const profileRoute=require("../src/routes/profile")
 const roomRouter = require("./routes/roomRoute")
 const foodMenuRoute=require("./routes/foodMenuRoute")
 const foodSelectionRoute=require("./routes/foodSelectionRoute")
+const complaintRouter = require("./routes/complaintRoute")
 
 app.use(express.json())
 app.use(cookie())
@@ -19,7 +20,7 @@ app.use("/",profileRoute)
 app.use("/",roomRouter)
 app.use("/",foodMenuRoute)
 app.use("/",foodSelectionRoute)
-
+app.use("/",complaintRouter)
 
 
  
