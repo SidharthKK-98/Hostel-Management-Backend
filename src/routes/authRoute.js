@@ -15,7 +15,7 @@ authRoute.post("/signup",async(req,res)=>{
         const isExistingUser=await User.findOne({emailId})
 
         if(isExistingUser){
-            return res.status(400).json({message:"user is already existing"})
+            return res.status(409).json({message:"user is already existing"})
         }
 
         const encryptedPassword=await bcrypt.hash(password,10)
@@ -44,14 +44,17 @@ authRoute.post("/signup",async(req,res)=>{
             secure:true 
         })
 
+         const userObj = savedUser.toObject()
+         delete userObj.password
+
         res.status(200).json({
             message:"signup successfull",
-            user:savedUser
+            user:userObj
         })
 
     }
     catch(err){
-        res.status(400).json({message:"something went wrong",err})
+        res.status(400).json({message:"something went wrong"})
         console.log("something went wrong ",err);
         
     }
@@ -64,30 +67,33 @@ authRoute.post("/login",async(req,res)=>{
     try{
 
         const {emailId,password}=req.body
-        const user=await User.findOne({emailId})
+        const user=await User.findOne({emailId}).select("+password")
 
         if(!user){
-            res.status(401).json({message:"no user found"})
+           return res.status(401).json({message:"no user found"})
         }
         const validPassword=await user.validatePassword(password)
 
         if(!validPassword){
-            res.status(400).json({message:"invalid credentials"})
+           return res.status(400).json({message:"invalid credentials"})
         }
 
         const token=user.getJWT()
         res.cookie("token",token,{
-            httpOnly:true,
-            sameSite:"none",
-            secure:true
+            httpOnly:false,
+            sameSite:"lax",
+            secure:false
         })
 
-        res.status(200).json({message:"login is successfull",user})
+        const userObj = user.toObject()
+        delete userObj.password
+
+        res.status(200).json({message:"login is successfull",user:userObj})
 
 
     }
     catch(err){
-        res.status(400).json({message:"something went wrong",err})
+        res.status(400).json({message:"something went wrong",err:err.message})
     }
 })
 

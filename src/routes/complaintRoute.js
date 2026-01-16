@@ -10,7 +10,6 @@ complaintRouter.post("/complaint/postIssue",userAuth,async(req,res)=>{
 
         const userId = req.user._id
         const {category,subject} = req.body
-
         const user = await User.findById(userId)
 
         if(!user.isRoomAllocated){
@@ -24,6 +23,19 @@ complaintRouter.post("/complaint/postIssue",userAuth,async(req,res)=>{
 
          if(!categories.includes(category)){
             return res.status(400).json({message:"this is not listed complaint category "})
+         }
+
+         const repeatedComplaint = await Complaint.findOne({
+            $and:[
+                {createdBy:userId},
+                {status:{$ne:"RESOLVED"}},
+                {subject},
+                {category}
+            ]
+         })
+
+         if(repeatedComplaint){
+            return res.status(400).json({message:"This complaint is already existing and being resolved"})
          }
 
         const complaint = await Complaint.create({
@@ -73,6 +85,51 @@ complaintRouter.get("/complaint/getUnresolved",userAuth,async(req,res)=>{
 
     }
     catch(err){
+        res.status(400).json({message:"something went wrong",error:err.message})
+
+    }
+
+})
+
+complaintRouter.patch("/complaint/updateIssue/:issueId",userAuth,async(req,res)=>{
+
+    try{
+
+        const {issueId} = req.params
+        const complaint = await Complaint.findById(issueId)
+        let newStatus
+
+        if(!complaint){
+            return res.status(400).json({message:"No complaint is found"})
+        }
+
+        const Status = ["OPEN","IN_PROGRESS","RESOLVED"]
+
+        if(!Status.includes(complaint.status)){
+            return res.status(400).json({message:"invalid status"})
+        }
+
+        if(complaint.status == "OPEN"){
+            newStatus = "IN_PROGRESS"
+
+        }
+        else if(complaint.status == "IN_PROGRESS"){
+            newStatus = "RESOLVED"
+        }
+        else{
+           return res.status(400).json({message:"This complaint is already resolved"})
+        }
+
+        complaint.status = newStatus
+        complaint.updatedBy =req.user._id;
+
+
+        const result = await complaint.save()
+
+        res.status(200).json({message:"complaint updated successfully ",data:result})
+
+    }
+     catch(err){
         res.status(400).json({message:"something went wrong",error:err.message})
 
     }

@@ -28,11 +28,13 @@ const userSchema=new mongoose.Schema({
     password:{
         type:String,
         required:true,
-        minLength:6
+        minLength:6,
+        select:false
     },
     role:{
         type:String,
         required:true,
+        default:"user",
         enum:{
             values:["admin","user"],
             message:"{value} is not valid"

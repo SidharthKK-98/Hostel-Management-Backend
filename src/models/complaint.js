@@ -14,7 +14,10 @@ const complaintSchema = new mongoose.Schema({
         required:true
     },
     subject:{
-        type:String
+        type:String,
+        trim: true,
+         lowercase: true,
+         required: true
     },
     status:{
         type:String,

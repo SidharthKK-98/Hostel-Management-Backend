@@ -1,4 +1,5 @@
 const express=require("express")
+const cors = require("cors")
 require('dotenv').config()
 const connectDB=require("./config/connectDB")
 const app=express()
@@ -9,6 +10,13 @@ const roomRouter = require("./routes/roomRoute")
 const foodMenuRoute=require("./routes/foodMenuRoute")
 const foodSelectionRoute=require("./routes/foodSelectionRoute")
 const complaintRouter = require("./routes/complaintRoute")
+
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,    
+  })
+);
 
 app.use(express.json())
 app.use(cookie())

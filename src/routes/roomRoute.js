@@ -118,6 +118,25 @@ roomRouter.delete("/hostelConfig/totalRoom/deleteRoom/:roomId",userAuth,async(re
     }
 })
 
+roomRouter.get("/room/RoomUnassignedUsers",userAuth,async(req,res)=>{
+
+    try{
+
+        
+       const users = await User.find({
+            isRoomAllocated:false
+        }).select("_id firstName lastName photoUrl gender")
+
+        res.status(200).json({message:"success",data:users})
+
+    }
+    catch(err){
+        res.status(400).json({message:"something went wrong",error:err.message})
+
+    }
+
+})
+
 roomRouter.post("/room/addGuest/:roomId",userAuth,async(req,res)=>{
 
     try{
@@ -160,12 +179,11 @@ roomRouter.post("/room/addGuest/:roomId",userAuth,async(req,res)=>{
 
 })
 
-roomRouter.delete("/room/removeGuest/:roomId",userAuth,async(req,res)=>{
+roomRouter.delete("/room/removeGuest/:roomId/:userId",userAuth,async(req,res)=>{
 
     try{
 
-        const {roomId}=req.params
-        const {userId}=req.body
+        const {roomId,userId}=req.params
         const room= await Room.findById(roomId)
         const user= await User.findById(userId)
 
