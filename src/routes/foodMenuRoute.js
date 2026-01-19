@@ -16,7 +16,7 @@ foodMenuRoute.post("/foodMenu/addFoodItem",userAuth,multerMiddleware.single("foo
         const foodName= await FoodMenu.findOne({name:{ $regex: new RegExp(`^${name}$`, "i") }})
 
         if(foodName){
-            return res.status(401).json({message:"The Item is already added"})
+            return res.status(400created).json({message:"The Item is already added"})
         }
 
         if(!req.file){
@@ -49,6 +49,25 @@ foodMenuRoute.post("/foodMenu/addFoodItem",userAuth,multerMiddleware.single("foo
     }
     catch(err){
         res.status(400).json({message:"something went wrong",error:err.message})
+    }
+
+})
+
+foodMenuRoute.get("/foodMenu/getFoodItems",userAuth,async(req,res)=>{
+
+    try{
+
+        const foodMenu = await FoodMenu.find()
+        if(!foodMenu){
+            return res.status(400).json({message:"No menu founded"})
+        }
+
+        res.status(200).json({message:"success",foodMenu})
+
+    }
+    catch(err){
+        res.status(400).json({message:"something is wrong",error:err.message})
+ 
     }
 
 })

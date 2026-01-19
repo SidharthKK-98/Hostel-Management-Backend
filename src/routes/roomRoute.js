@@ -94,6 +94,8 @@ roomRouter.delete("/hostelConfig/totalRoom/deleteRoom/:roomId",userAuth,async(re
     try{
 
         const {roomId}=req.params
+        const config=await hostelConfig.findOne()
+
         const room = await Room.findById(roomId)
 
         if(!room){
@@ -101,6 +103,9 @@ roomRouter.delete("/hostelConfig/totalRoom/deleteRoom/:roomId",userAuth,async(re
         }
         if(room.occupants.length>0){
             return res.status(400).json({message:"Room is not empty"})
+        }
+        if(config.rooms.length<2){
+            return res.status(400).json({message:"Atleast one room is needed"})
         }
 
         await hostelConfig.updateOne({},{
