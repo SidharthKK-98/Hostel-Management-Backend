@@ -213,14 +213,14 @@ foodMenuRoute.get("/dailyFoodMenu/getFoodMenu",userAuth,async(req,res)=>{
     }
 })
 
-foodMenuRoute.patch("/dailyFoodMenu/updateFoodMenu/:FoodMenuId",userAuth,async(req,res)=>{
+foodMenuRoute.delete("/dailyFoodMenu/deleteFoodMenu/:FoodMenuId",userAuth,async(req,res)=>{
 
     try{
 
-        const {FoodMenuId}=req.params
+        const {FoodMenuId} = req.params
         const menu = await DailyMenu.findById(FoodMenuId)
 
-        if(!menu){
+         if(!menu){
             return res.status(404).json({message:"Daily menu not found"})
         }
 
@@ -230,31 +230,21 @@ foodMenuRoute.patch("/dailyFoodMenu/updateFoodMenu/:FoodMenuId",userAuth,async(r
         const menuDate= new Date(menu.date)
         menuDate.setHours(0, 0, 0, 0);
 
-        console.log(menuDate,today);
-        
-        if(menuDate <= today){
+         if(menuDate <= today){
             return res.status(403).json({message:"you can't update menu of today or previous days"})
         }
 
-        const allowedFields=["morning","noon","evening"]
+        await DailyMenu.findByIdAndDelete(FoodMenuId)
+        res.status(200).json({message:"food menu deleted ",data:menu})
 
-        Object.keys(req.body).forEach((key)=>{
-            if(allowedFields.includes(key)){
-                menu[key] = req.body[key]
-            }
-            else{
-                return res.status(403).json({message:`${key} can't updated`})
-            }
-        })
-
-        await menu.save()
-
-        res.status(200).json({message:"updated successfully",data:menu})
 
     }
     catch(err){
         res.status(400).json({message:"something went wrong",error:err.message})
     }
+
 })
+
+
 
 module.exports=foodMenuRoute
