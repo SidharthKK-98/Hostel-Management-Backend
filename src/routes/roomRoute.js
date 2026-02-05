@@ -129,7 +129,8 @@ roomRouter.get("/room/RoomUnassignedUsers",userAuth,async(req,res)=>{
 
         
        const users = await User.find({
-            isRoomAllocated:false
+            isRoomAllocated:false,
+            role: { $ne: "admin" }
         }).select("_id firstName lastName photoUrl gender")
 
         res.status(200).json({message:"success",data:users})

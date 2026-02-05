@@ -157,6 +157,32 @@ foodSelectionRoute.patch("/foodSelction/updateFood/:foodSelectionId",userAuth,as
 })
 
 
+foodSelectionRoute.get("/foodSelection/getHistory",userAuth,async(req,res)=>{
+
+    try{
+
+        const userId = req.user._id
+
+        const today = new Date()
+        today.setHours(0,0,0,0)
+
+        const fourDaysAgo = new Date(today)
+        fourDaysAgo.setDate(today.getDate() - 4)
+
+        const menus = await FoodSelection.find({
+            userId:userId,
+            date:{$gte: fourDaysAgo}
+        }).populate("morning.foodId").populate("noon.foodId").populate("night.foodId")
+        .sort({date:-1}).limit(4)
+
+        res.status(200).json({message:"success",data:menus})
+
+    }
+     catch(err){
+        res.status(400).json({message:"something goes wrong",error:err.message})
+    }
+
+})
 
 foodSelectionRoute.get("/foodSelction/getByDate",userAuth,async(req,res)=>{
 
@@ -229,12 +255,12 @@ foodSelectionRoute.get("/foodSelction/getByDate",userAuth,async(req,res)=>{
 
 })
 
-foodSelectionRoute.get("/foodSelction/getByUserId/:userId",userAuth,async(req,res)=>{
+foodSelectionRoute.post("/foodSelction/getByUserId",userAuth,async(req,res)=>{
 
     try{
 
         const {year,month} = req.body
-        const {userId} = req.params
+        const userId = req.user._id
 
         const user = await User.findById(userId)
         if(!user){
