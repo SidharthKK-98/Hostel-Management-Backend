@@ -171,7 +171,7 @@ foodSelectionRoute.get("/foodSelection/getHistory",userAuth,async(req,res)=>{
 
         const menus = await FoodSelection.find({
             userId:userId,
-            date:{$gte: fourDaysAgo}
+            // date:{$gte: fourDaysAgo}
         }).populate("morning.foodId").populate("noon.foodId").populate("night.foodId")
         .sort({date:-1}).limit(4)
 

@@ -12,7 +12,12 @@ profileRouter.get("/profile/view",userAuth,async(req,res)=>{
 
     try{
 
-        const profile=  req.user
+        const profile= await User.findById(req.user._id).populate({path:"roomId",
+            populate:{path:"occupants",model:"User",select:"firstName photoUrl age "}}).lean()
+            
+        if(profile?.roomId?.occupants?.length){
+            profile.roomId.occupants =  profile.roomId.occupants.filter(occupant=>occupant._id.toString() !== req.user._id.toString())
+        }
         res.status(200).json({message:"profile view",data:profile})
 
     }
@@ -22,12 +27,13 @@ profileRouter.get("/profile/view",userAuth,async(req,res)=>{
 })
 
 
-profileRouter.patch("/profile/edit/image",userAuth,multerMiddleware.single("userImg"),async(req,res)=>{
+profileRouter.patch("/profile/edit",userAuth,multerMiddleware.single("userImg"),async(req,res)=>{
 
     try{
 
         const user=await User.findById(req.user._id)
 
+        if(req.file){
         if(user.photoPublicId){
             await cloudinary.uploader.destroy(user.photoPublicId)
         }
@@ -40,7 +46,7 @@ profileRouter.patch("/profile/edit/image",userAuth,multerMiddleware.single("user
         user.photoUrl=result.secure_url
         user.photoPublicId=result.public_id
 
-        await user.save()
+        // await user.save()
 
         fs.unlinkSync(req.file.path,(err)=>{
             if(err){
@@ -48,10 +54,35 @@ profileRouter.patch("/profile/edit/image",userAuth,multerMiddleware.single("user
                 
             }
         })
+    }
 
-        return res.json({
+         const allowedUpdates = [
+        "firstName",
+        "lastName",
+        
+      ]
+
+     const requestFields = Object.keys(req.body)
+
+      const invalidFields = requestFields.filter(
+        (field) => !allowedUpdates.includes(field)
+      )
+
+      if (invalidFields.length > 0) {
+        return res.status(400).json({
+          message: `You cannot update: ${invalidFields.join(", ")}`,
+        })
+      }
+
+       requestFields.forEach((field) => {
+        user[field] = req.body[field]
+      })
+
+    const updatedUser = await user.save()
+
+        return res.json({ 
             message:"profile picture updated successfully",
-            user
+            data:updatedUser
         })
 
 
