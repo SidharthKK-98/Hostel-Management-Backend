@@ -3,6 +3,7 @@ const { userAuth } = require("../middlewares/auth")
 const Complaint = require("../models/complaint")
 const complaintRouter = express.Router()
 const User = require("../models/user")
+const Room = require("../models/room")
 
 complaintRouter.post("/complaint/postIssue",userAuth,async(req,res)=>{
 
@@ -10,7 +11,11 @@ complaintRouter.post("/complaint/postIssue",userAuth,async(req,res)=>{
 
         const userId = req.user._id
         const {category,subject} = req.body
+        const normalizedSubject = subject.trim().toLowerCase()
         const user = await User.findById(userId)
+        const room = await Room.findOne({occupants:userId}).select("_id roomNumber")
+        const roomNumber = room.roomNumber
+        
 
         if(!user.isRoomAllocated){
             return res.status(400).json({message:"Room is not yet allocated to you"})
@@ -19,19 +24,22 @@ complaintRouter.post("/complaint/postIssue",userAuth,async(req,res)=>{
         if (!category || !subject) {
             return res.status(400).json({ message: "Category and subject are required" });
          }
+
         const categories = ["FOOD","ROOM","MAINTENANCE","OTHER"]
+
 
          if(!categories.includes(category)){
             return res.status(400).json({message:"this is not listed complaint category "})
          }
 
          const repeatedComplaint = await Complaint.findOne({
-            $and:[
-                {createdBy:userId},
-                {status:{$ne:"RESOLVED"}},
-                {subject},
-                {category}
-            ]
+            
+
+                status:{$ne:"RESOLVED"},
+                subject:normalizedSubject,
+                roomNumber,
+                category
+            
          })
 
          if(repeatedComplaint){
@@ -41,7 +49,8 @@ complaintRouter.post("/complaint/postIssue",userAuth,async(req,res)=>{
         const complaint = await Complaint.create({
             createdBy:userId,
             category,
-            subject
+            subject:normalizedSubject,
+            roomNumber
            
         })
 
@@ -60,7 +69,7 @@ complaintRouter.get("/complaint/getAllUnresolved",userAuth,async(req,res)=>{
 
         const data = await Complaint.find({
             status:{$ne:"RESOLVED"}
-        }).populate({path:"createdBy",select:"firstName lastName emailId roomId",populate:{path:"roomId",model:"Room",select:"roomNumber"}})
+        }).populate({path:"createdBy",select:"firstName lastName emailId roomId",populate:{path:"roomId",model:"Room",select:"roomNumber"}}).populate({path:"timeline.updatedBy",model:"User",select:"firstName"})
 
         res.status(200).json({message:"complaits got successfully",data:data})
     }
@@ -91,6 +100,27 @@ complaintRouter.get("/complaint/getUnresolved",userAuth,async(req,res)=>{
 
 })
 
+complaintRouter.get("/complaint/getComplaintHistory",userAuth,async(req,res)=>{
+
+    try{
+
+        const userId = req.user._id
+        const data = await Complaint.find({
+    
+                createdBy:userId
+            
+
+        }).sort({createdAt:-1}).populate({path:"createdBy",select:"firstName lastName emailId roomId",populate:{path:"roomId",model:"Room",select:"roomNumber"}}).populate({path:"timeline.updatedBy",model:"User",select:"firstName"}) 
+
+        res.status(200).json({message:"complaits got successfully",data:data})
+
+    }
+    catch(err){
+        res.status(400).json({message:"something went wrong",error:err.message})
+
+    }
+
+})
 complaintRouter.patch("/complaint/updateIssue/:issueId",userAuth,async(req,res)=>{
 
     try{

@@ -24,6 +24,10 @@ const complaintSchema = new mongoose.Schema({
         enum:["OPEN","IN_PROGRESS","RESOLVED"],
         default:"OPEN"
     },
+    roomNumber:{
+        type:Number,
+        required:true
+    },
     timeline:[
         {
             status:{
@@ -66,7 +70,7 @@ complaintSchema.pre("save",function(next){
         this.timeline.push({
             status:this.status,
             message,
-            updatedBy:this._updatedBy
+            updatedBy:this.updatedBy
         })
     }
 
