@@ -4,6 +4,8 @@ const Complaint = require("../models/complaint")
 const complaintRouter = express.Router()
 const User = require("../models/user")
 const Room = require("../models/room")
+const {getEmbedding} = require("../utils/embedding")
+const {checkDuplicateComplaint} = require("../utils/checkDuplicateComplaint")
 
 complaintRouter.post("/complaint/postIssue",userAuth,async(req,res)=>{
 
@@ -15,6 +17,14 @@ complaintRouter.post("/complaint/postIssue",userAuth,async(req,res)=>{
         const user = await User.findById(userId)
         const room = await Room.findOne({occupants:userId}).select("_id roomNumber")
         const roomNumber = room.roomNumber
+
+        const normalizeComplaintText = (text) => {
+                return text
+                    .toLowerCase()
+                    .replace(/[^\w\s]/g, "")     
+                    .replace(/\s+/g, " ")        
+                    .trim();
+                }
         
 
         if(!user.isRoomAllocated){
@@ -26,31 +36,33 @@ complaintRouter.post("/complaint/postIssue",userAuth,async(req,res)=>{
          }
 
         const categories = ["FOOD","ROOM","MAINTENANCE","OTHER"]
+        const cleanSub = normalizeComplaintText(subject)
+        const newEmbedding = await getEmbedding(cleanSub)
 
 
          if(!categories.includes(category)){
             return res.status(400).json({message:"this is not listed complaint category "})
          }
 
-         const repeatedComplaint = await Complaint.findOne({
-            
+        const duplicateCheck = await checkDuplicateComplaint({
+            roomNumber,
+            category,
+            newEmbedding
+        })
+        // console.log("duplicate",duplicateCheck?.isDuplicate);
+        
 
-                status:{$ne:"RESOLVED"},
-                subject:normalizedSubject,
-                roomNumber,
-                category
-            
-         })
-
-         if(repeatedComplaint){
+         if(duplicateCheck?.isDuplicate){
             return res.status(400).json({message:"This complaint is already existing and being resolved"})
          }
 
         const complaint = await Complaint.create({
             createdBy:userId,
             category,
-            subject:normalizedSubject,
-            roomNumber
+            subject:cleanSub,
+            roomNumber,
+            embedding: newEmbedding
+
            
         })
 

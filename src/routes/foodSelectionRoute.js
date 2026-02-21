@@ -303,4 +303,65 @@ foodSelectionRoute.post("/foodSelction/getByUserId",userAuth,async(req,res)=>{
     }
 })
 
+foodSelectionRoute.get("/foodSelction/getAmount/:userId",userAuth,async(req,res)=>{
+    try{
+          
+
+            const now = new Date()
+
+            const startDate = new Date(
+            now.getFullYear(),
+            now.getMonth(),
+            1,
+            0, 0, 0
+            )
+
+            const endDate = new Date(
+            now.getFullYear(),
+            now.getMonth() + 1,
+            1,
+            0, 0, 0
+            )
+
+          
+          const {userId} = req.params
+          const user = await User.findById(userId)
+        if(!user){
+            return res.status(400).json({message:"No user found"})
+        }
+
+       
+       
+        
+
+        const result = await FoodSelection.aggregate([
+            {
+                $match:{
+                    userId:new mongoose.Types.ObjectId(userId),
+                    date:{
+                        $gte:startDate,
+                        $lt:endDate
+                    }
+                }
+            },
+            {
+                $group:{
+                    _id:null,
+                    totalPrice:{$sum:"$totalPrice"}
+                }
+
+            }
+        ])
+
+        const monthlyTotal = result[0]?.totalPrice || 0
+
+        res.status(200).json({message:"result get succefully",data:monthlyTotal})
+
+    }
+    catch(err){
+                res.status(400).json({message:"something went wrong",error:err.message})
+
+    }
+})
+
 module.exports= foodSelectionRoute

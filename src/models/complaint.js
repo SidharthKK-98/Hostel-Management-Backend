@@ -28,6 +28,11 @@ const complaintSchema = new mongoose.Schema({
         type:Number,
         required:true
     },
+    embedding: {
+    type: [Number], 
+    required: true,
+    select:false
+},
     timeline:[
         {
             status:{
@@ -73,6 +78,11 @@ complaintSchema.pre("save",function(next){
             updatedBy:this.updatedBy
         })
     }
+
+     if (this.status === "RESOLVED") {
+      this.embedding = undefined;  
+    }
+  
 
     next()
 

@@ -225,4 +225,41 @@ roomRouter.delete("/room/removeGuest/:roomId/:userId",userAuth,async(req,res)=>{
 
 })
 
+roomRouter.get("/room/summary",userAuth,async(req,res)=>{
+
+    try{
+
+        const summary = await Room.aggregate([
+            {
+                $project:{
+                    occupantsCount:{$size:"$occupants"},
+                    status: 1
+                }
+            },
+            {
+                $group:{
+                    _id:null,
+                    totalRooms:{$sum:1},
+                    totalOccupants:{$sum:"$occupantsCount"},
+                    emptyRooms:{
+                        $sum:{$cond:[{$eq:["$status","empty"]},1,0]}
+                    },
+                    partiallyOccupiedRooms:{
+                        $sum:{$cond:[{$eq:["$status","partially_occupied"]},1,0]}
+                    },
+                     fullRooms: {
+                        $sum: { $cond: [{ $eq: ["$status", "full"] }, 1, 0] }
+                    }
+                }
+            }
+        ])
+
+        res.status(200).json(summary[0])
+    }
+    catch(err){
+        res.status(400).json({message:"something went wrong",error:err.message})
+
+    }
+
+})
 module.exports=roomRouter

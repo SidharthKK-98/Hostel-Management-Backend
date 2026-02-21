@@ -4,6 +4,7 @@ const multerMiddleware = require("../middlewares/multer")
 const cloudinary=require("../config/cloudinary")
 const FoodMenu=require("../models/foodMenu")
 const DailyMenu=require("../models/dailyMenu")
+const FoodSelection = require("../models/foodSelection")
 const fs=require("fs")
 foodMenuRoute=express.Router()
 
@@ -231,8 +232,18 @@ foodMenuRoute.delete("/dailyFoodMenu/deleteFoodMenu/:FoodMenuId",userAuth,async(
         menuDate.setHours(0, 0, 0, 0);
 
          if(menuDate <= today){
-            return res.status(403).json({message:"you can't update menu of today or previous days"})
+            return res.status(403).json({message:"you can't remove menu of today or previous days"})
         }
+
+        const isFoodSelected = await FoodSelection.find({
+            date:menuDate
+        })
+
+        if(isFoodSelected.length>0){
+            return res.status(403).json({message:"you can't remove menu after user selecting Daily menu"}) 
+        }
+
+
 
         await DailyMenu.findByIdAndDelete(FoodMenuId)
         res.status(200).json({message:"food menu deleted ",data:menu})

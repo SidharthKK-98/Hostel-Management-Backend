@@ -93,4 +93,21 @@ profileRouter.patch("/profile/edit",userAuth,multerMiddleware.single("userImg"),
 
 })
 
+profileRouter.get("/profile/getAllUsers",userAuth,async(req,res)=>{
+    try{
+
+        const Users = await User.find({
+            role:{$ne:"admin"}
+        }).select("_id firstName lastName emailId photoUrl isFeesPayed gender age isRoomAllocated").populate({
+            path:"roomId",select:"roomNumber"
+        })
+
+        res.status(200).json({message:"success",data:Users})
+
+    }
+    catch(err){
+            res.status(400).json({message:"something went wrong",err})
+
+    }
+})
 module.exports=profileRouter
