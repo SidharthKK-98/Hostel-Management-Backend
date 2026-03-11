@@ -3,6 +3,7 @@ const authRoute=express.Router()
 const User=require("../models/user")
 const bcrypt=require("bcrypt")
 const validator=require("validator")
+const { userAuth } = require("../middlewares/auth")
 
 
 
@@ -110,6 +111,25 @@ authRoute.post("/logout",(req,res)=>{
 
 })
 
+
+authRoute.get("/authenticated",userAuth,async(req,res)=>{
+
+    try{
+
+         res.set({
+            "Cache-Control": "no-store",
+            Pragma: "no-cache",
+            Expires: "0",
+        })
+
+        res.status(200).json(req.user)
+
+    }
+    catch(err){
+        res.status(400).json({message:"something is wrong",data:err})
+    }
+
+})
 
 
 

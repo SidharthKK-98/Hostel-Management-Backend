@@ -10,6 +10,8 @@ const roomRouter = require("./routes/roomRoute")
 const foodMenuRoute=require("./routes/foodMenuRoute")
 const foodSelectionRoute=require("./routes/foodSelectionRoute")
 const complaintRouter = require("./routes/complaintRoute")
+const paymentRoutes = require("./routes/paymentRoute")
+const groceryRoute = require("./routes/grocery")
 
 app.use(
   cors({
@@ -29,6 +31,10 @@ app.use("/",roomRouter)
 app.use("/",foodMenuRoute)
 app.use("/",foodSelectionRoute)
 app.use("/",complaintRouter)
+app.use("/",paymentRoutes)
+app.use("/",groceryRoute)
+
+
 
 
  
