@@ -41,6 +41,8 @@ app.use("/",groceryRoute)
 connectDB().then(
     ()=>{
         console.log("database connected");
+        require("./cron/stockAlertCron")
+        require("./cron/predictionCron")
 
         app.listen(3000,()=>{
         console.log("server connected successfully at 3000");

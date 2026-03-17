@@ -11,6 +11,10 @@ const groceryUsageSchema = new mongoose.Schema({
         type:Number,
         required:true
     },
+    unit:{
+        type:String,
+        required:true
+    },
     usedBy:{
         type:String,
         default:"cook"
@@ -22,4 +26,4 @@ const groceryUsageSchema = new mongoose.Schema({
 
 },{timestamps:true})
 
-module.exports = new mongoose.model("GroceryUsage",groceryUsageSchema)
+module.exports =  mongoose.model("GroceryUsage",groceryUsageSchema)

@@ -2,7 +2,9 @@ const express = require("express")
 const groceryRoute = express.Router()
 
 const Grocery = require("../models/groceryItems")
+const GroceryUsage = require("../models/groceryUsage")
 const { userAuth } = require("../middlewares/auth")
+const predictStockOutDate = require("../utils/predictStockOutDate")
 
 groceryRoute.post("/grocery/add",userAuth,async(req,res)=>{
 
@@ -28,6 +30,21 @@ groceryRoute.post("/grocery/add",userAuth,async(req,res)=>{
             currentStock:addingStock
         })
         res.status(201).json({message:"Item added successfully",data:grocery})
+
+    }
+    catch(err){
+        res.status(500).json({message:"something went wrong",error:err.message})
+
+    }
+
+})
+
+groceryRoute.get("/grocery/getItems",userAuth,async(req,res)=>{
+
+    try{
+
+        const Items = await Grocery.find()
+        res.status(200).json({message:"success",data:Items})
 
     }
     catch(err){
@@ -63,6 +80,14 @@ groceryRoute.patch("/grocery/restore",userAuth,async(req,res)=>{
              { new:true }
         )
 
+         const prediction  = await predictStockOutDate(grocery._id)
+
+        await Grocery.findByIdAndUpdate(
+                    grocery._id,
+                    {        
+                            $set:{predictedOutDate:prediction}
+                    }         
+                 ) 
         res.status(200).json({message:`${name} restored`,data:grocery})
 
     }
@@ -73,4 +98,59 @@ groceryRoute.patch("/grocery/restore",userAuth,async(req,res)=>{
 
 })
 
+groceryRoute.post("/grocery/takeGrocery",userAuth,async(req,res)=>{
+
+    try{
+
+        const {groceryId,qty,unit} = req.body
+        const grocery = await Grocery.findById(groceryId)
+
+        if(!qty || qty <= 0){
+            return res.status(400).json({message:"Invalid quantity"})
+        }
+        
+
+        if(!grocery){
+           return res.status(401).json({message:"Item not found"})
+        }
+
+        if(grocery.unit !== unit){
+            return res.status(401).json({message:"Unit not matching"})
+        }
+
+        if(grocery.currentStock < qty){
+           return res.status(401).json({message:"Not enough stock"})
+        }
+
+        grocery.currentStock -= qty
+
+        await grocery.save()
+
+       const groceryUsage =  await GroceryUsage.create({
+            groceryId,
+            quantity:qty,
+            unit
+
+        })
+
+        const prediction  = await predictStockOutDate(groceryId)
+
+        await Grocery.findByIdAndUpdate(
+                    grocery._id,
+                    {        
+                            $set:{predictedOutDate:prediction}
+                    }         
+                 ) 
+
+        res.status(200).json({message:"success",data:{grocery,groceryUsage}})
+
+
+
+    }
+    catch(err){
+        res.status(500).json({message:"something went wrong",error:err.message})
+
+    }
+
+})
 module.exports = groceryRoute 

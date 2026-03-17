@@ -8,7 +8,7 @@ const groceryItemsSchema = new mongoose.Schema({
     },
     unit:{
         type:String,
-        enum:["kg","g","litre","ml","pcs"],
+        enum:["kg","g","liter","ml","packet"],
         required:true
     },
     lastAddedStock:{
@@ -18,6 +18,10 @@ const groceryItemsSchema = new mongoose.Schema({
     currentStock:{
         type:Number,
         default:0
+    },
+    minStock:{
+        type:Number,
+        default:5
     },
     predictedOutDate:{
         type:Date
