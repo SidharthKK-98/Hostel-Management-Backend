@@ -9,17 +9,19 @@ paymentRoutes.post("/payment/create",userAuth,async(req,res)=>{
 
     try{
 
-        const {amount} = req.body
+        const {amount,month,year} = req.body
         const {firstName,lastName} = req.user
 
         const order = await RazorpayInstance.orders.create({
 
             amount:amount*100,
             currency:"INR",
-            receipt:`rent_for_${firstName}`,
+            receipt:`rent_for_${month}_${year}_${firstName}`,
             notes:{
                 firstName,
-                lastName
+                lastName,
+                month,
+                year
             }
 
         })
@@ -33,8 +35,10 @@ paymentRoutes.post("/payment/create",userAuth,async(req,res)=>{
             amount:order.amount,
             currency:order.currency,
             receipt:order.receipt,
-            notes:order.notes
-        })
+            notes:order.notes,
+            month,
+            year
+        }) 
 
         const savePayment = await payment.save()
 

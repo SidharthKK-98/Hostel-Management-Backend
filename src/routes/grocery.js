@@ -142,7 +142,7 @@ groceryRoute.post("/grocery/takeGrocery",userAuth,async(req,res)=>{
                     }         
                  ) 
 
-        res.status(200).json({message:"success",data:{grocery,groceryUsage}})
+        res.status(200).json({message:"success",data:grocery})
 
 
 
@@ -153,4 +153,59 @@ groceryRoute.post("/grocery/takeGrocery",userAuth,async(req,res)=>{
     }
 
 })
+
+groceryRoute.patch("/grocery/update",userAuth,async(req,res)=>{
+        try{
+
+            const {_id,name,unit,minStock} = req.body
+
+            if(!_id){
+                return res.status(400).json({message:"Grocery ID is required"})
+            }
+
+            const updateFields = {}
+            if(!name !== undefined) updateFields.name = name
+            if (unit !== undefined) updateFields.unit = unit
+            if (minStock !== undefined) updateFields.minStock = minStock
+
+            const updatedGrocery = await Grocery.findByIdAndUpdate(
+
+                _id,
+                updateFields,
+                {new:true,runValidators:true}
+            )
+
+             res.status(200).json({
+                        message: "Grocery updated successfully",
+                        data: updatedGrocery
+                    })
+
+        }
+        catch(err){
+                    res.status(500).json({message:"something went wrong",error:err.message})
+
+        }
+})
+
+groceryRoute.delete("/grocery/remove",userAuth,async(req,res)=>{
+
+    try{
+            const {_id} = req.body
+             if(!_id){
+                return res.status(400).json({message:"Grocery ID is required"})
+            }
+
+            const deletedItem = await Grocery.findByIdAndDelete(_id)
+
+            res.status(200).json({
+            message: "Grocery Removed successfully",
+            data: deletedItem
+        })
+    }
+    catch(err){
+        res.status(500).json({message:"something went wrong",error:err.message})
+
+    }
+})
+
 module.exports = groceryRoute 

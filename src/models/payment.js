@@ -28,7 +28,7 @@ const paymentSchema = new mongoose.Schema({
     orderId:{
         type:String,
         required:true
-    },
+    }, 
     receipt:{
         type:String,
         required:true
@@ -36,6 +36,14 @@ const paymentSchema = new mongoose.Schema({
      notes: {
       firstName: String,
       lastName: String,
+    },
+     month: {
+        type: Number,
+        required: true
+    },
+    year: {
+        type: Number, 
+        required: true
     },
     paidAt:{
         type:Date

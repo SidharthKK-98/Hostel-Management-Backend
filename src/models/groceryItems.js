@@ -8,7 +8,7 @@ const groceryItemsSchema = new mongoose.Schema({
     },
     unit:{
         type:String,
-        enum:["kg","g","liter","ml","packet"],
+        enum:["kg","g","liter","ml","packet","pcs"],
         required:true
     },
     lastAddedStock:{
