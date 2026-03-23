@@ -37,14 +37,15 @@ app.use("/",groceryRoute)
 
 
 
- 
+   
 connectDB().then(
     ()=>{
         console.log("database connected");
         require("./cron/stockAlertCron")
         require("./cron/predictionCron")
+        const PORT = process.env.PORT || 3000;
 
-        app.listen(3000,()=>{
+        app.listen(PORT,()=>{
         console.log("server connected successfully at 3000");
     })
  }
