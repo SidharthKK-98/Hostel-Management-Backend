@@ -2,7 +2,10 @@ const express = require("express")
 const paymentRoutes = express.Router()
 const RazorpayInstance = require("../utils/razorpay")
 const Payment = require("../models/payment")
+const User=require("../models/user")
+
 const { userAuth } = require("../middlewares/auth")
+const { validateWebhookSignature } = require("razorpay/dist/utils/razorpay-utils")
 
 
 paymentRoutes.post("/payment/create",userAuth,async(req,res)=>{
@@ -49,6 +52,47 @@ paymentRoutes.post("/payment/create",userAuth,async(req,res)=>{
     catch(err){
         res.status(400).json({message:"something went wrong",error:err.message})
 
+    }
+})
+
+paymentRoutes.post("/payment/webhook",async(req,res)=>{
+    try{
+
+
+        const webhookSignature=req.headers["x-razorpay-signature"]
+
+        
+        const isWebhookValid = validateWebhookSignature(JSON.stringify(req.body),webhookSignature,process.env.RAZORPAY_WEBHOOK_SECRET)
+        
+        if(!isWebhookValid){
+            console.log("webhook is not valid") 
+            return res.status(400).json({message:"webhook is not valid"})
+        }
+        const event = req.body.event
+
+
+        if (event === "payment.captured") {
+        const paymentDetails = req.body.payload.payment.entity
+
+        console.log(paymentDetails)
+        }
+
+        const payment = await Payment.findOne({orderId:paymentDetails.order_id})
+        payment.status = paymentDetails.status
+        await payment.save()
+
+        const user=await User.findOne({_id:payment.userId})
+
+        if(user && paymentDetails.status==="captured"){
+            user.isFeesPayed=true
+            await user.save()
+        }
+
+
+    }
+    catch(err){
+        console.log(err);
+        
     }
 })
 
