@@ -81,9 +81,9 @@ authRoute.post("/login",async(req,res)=>{
 
         const token=user.getJWT()
         res.cookie("token",token,{
-            httpOnly:false,
-            sameSite:"lax",
-            secure:false
+            httpOnly:true,
+            sameSite:"none",
+            secure:true
         })
 
         const userObj = user.toObject()
