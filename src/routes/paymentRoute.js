@@ -58,41 +58,55 @@ paymentRoutes.post("/payment/create",userAuth,async(req,res)=>{
 paymentRoutes.post("/payment/webhook",async(req,res)=>{
     try{
 
+              const webhookSignature = req.headers["x-razorpay-signature"];
 
-        const webhookSignature=req.headers["x-razorpay-signature"]
+        const isWebhookValid = validateWebhookSignature(
+            JSON.stringify(req.body),
+            webhookSignature,
+            process.env.RAZORPAY_WEBHOOK_SECRET
+        );
 
+        if (!isWebhookValid) {
+            console.log("webhook is not valid");
+            return res.status(400).json({ message: "webhook is not valid" });
+        }
+
+        const event = req.body.event;
+
+        if (event !== "payment.captured") {
+            return res.status(200).json({ message: "event ignored" });
+        }
+
+        const paymentDetails = JSON.parse(req.body).payload.payment.entity;
+
+        console.log(paymentDetails);
+
+        const payment = await Payment.findOne({
+            orderId: paymentDetails.order_id,
+        });
+
+        if (!payment) {
+            return res.status(404).json({ message: "Payment not found" });
+        }
+
+        payment.status = paymentDetails.status;
+        await payment.save();
+
+        const user = await User.findById(payment.userId);
+
+        if (user && paymentDetails.status === "captured") {
+            user.isFeesPayed = true;
+            await user.save();
+        }
+
+        return res.status(200).json({ msg: "webhook received" });
         
-        const isWebhookValid = validateWebhookSignature(JSON.stringify(req.body),webhookSignature,process.env.RAZORPAY_WEBHOOK_SECRET)
-        
-        if(!isWebhookValid){
-            console.log("webhook is not valid") 
-            return res.status(400).json({message:"webhook is not valid"})
-        }
-        const event = req.body.event
-
-
-        if (event === "payment.captured") {
-        const paymentDetails = req.body.payload.payment.entity
-
-        console.log(paymentDetails)
-        }
-
-        const payment = await Payment.findOne({orderId:paymentDetails.order_id})
-        payment.status = paymentDetails.status
-        await payment.save()
-
-        const user=await User.findOne({_id:payment.userId})
-
-        if(user && paymentDetails.status==="captured"){
-            user.isFeesPayed=true
-            await user.save()
-        }
-
 
     }
     catch(err){
         console.log(err);
-        
+        return res.status(500).json({ message: "webhook error" });
+
     }
 })
 
