@@ -28,7 +28,7 @@ paymentRoutes.post("/payment/create",userAuth,async(req,res)=>{
             }
 
         })
-        console.log(order)
+        // console.log(order)
 
         const payment = new Payment({
 
@@ -77,9 +77,9 @@ paymentRoutes.post("/payment/webhook",async(req,res)=>{
             return res.status(200).json({ message: "event ignored" });
         }
 
-        const paymentDetails = JSON.parse(req.body).payload.payment.entity;
+        const paymentDetails = req.body.payload.payment.entity;
 
-        console.log(paymentDetails);
+        // console.log(paymentDetails);
 
         const payment = await Payment.findOne({
             orderId: paymentDetails.order_id,
