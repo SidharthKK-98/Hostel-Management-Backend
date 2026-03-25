@@ -55,13 +55,14 @@ paymentRoutes.post("/payment/create",userAuth,async(req,res)=>{
     }
 })
 
+
 paymentRoutes.post("/payment/webhook",async(req,res)=>{
     try{
 
-              const webhookSignature = req.headers["x-razorpay-signature"];
+        const webhookSignature = req.headers["x-razorpay-signature"];
 
         const isWebhookValid = validateWebhookSignature(
-            JSON.stringify(req.body),
+            req.body,
             webhookSignature,
             process.env.RAZORPAY_WEBHOOK_SECRET
         );
@@ -77,7 +78,7 @@ paymentRoutes.post("/payment/webhook",async(req,res)=>{
             return res.status(200).json({ message: "event ignored" });
         }
 
-        const paymentDetails = req.body.payload.payment.entity;
+        const paymentDetails = req.body.payload.payment.entity
 
         // console.log(paymentDetails);
 
