@@ -20,14 +20,7 @@ app.use(
   })
 );
 
-app.use((req, res, next) => {
-  if (req.originalUrl.startsWith( "/payment/webhook")) {
-    express.raw({ type: "application/json" })(req, res, next);
-  } else {
-    express.json()(req, res, next);
-  }
-})
-
+app.use(express.json())
 app.use(cookie())
 
 
