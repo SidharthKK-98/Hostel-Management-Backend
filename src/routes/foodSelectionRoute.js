@@ -268,8 +268,8 @@ foodSelectionRoute.post("/foodSelction/getByUserId",userAuth,async(req,res)=>{
         }
 
        
-        const startDate = new Date(year,month-1,1)
-        const endDate = new Date(year,month,1)
+        const startDate = new Date(Date.UTC(year,month-1,1))
+        const endDate = new Date(Date.UTC(year,month,1))
         console.log(startDate,endDate);
         
 

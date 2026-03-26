@@ -111,4 +111,36 @@ paymentRoutes.post("/payment/webhook",async(req,res)=>{
     }
 })
 
+paymentRoutes.get("/payment/verify/:year/:month",userAuth,async(req,res)=>{
+    try{
+
+        const {month,year} = req.params
+        const userId = req.user._id
+
+        const monthNum = parseInt(month);
+        const yearNum = parseInt(year)
+
+        console.log(userId,monthNum,yearNum);
+        
+        const user = await User.findById(userId)
+        if(!user){
+            return res.status(400).json({message:"No user found"})
+        }
+
+        const payment = await Payment.find({userId,month:monthNum,year:yearNum})
+        console.log(payment);
+        
+
+        if (!payment) {
+            return res.status(404).json({ message: "Payment not found" });
+        }
+
+        res.status(200).json({ success: true, payment });
+
+    }
+    catch(err){
+        res.status(400).json({message:"something went wrong",error:err.message})
+
+    }
+})
 module.exports = paymentRoutes
