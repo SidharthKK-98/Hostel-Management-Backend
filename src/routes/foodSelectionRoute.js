@@ -267,9 +267,10 @@ foodSelectionRoute.post("/foodSelction/getByUserId",userAuth,async(req,res)=>{
             return res.status(400).json({message:"No user found"})
         }
 
-       
-        const startDate = new Date(Date.UTC(year,month-1,1))
-        const endDate = new Date(Date.UTC(year,month,1))
+       const IST_OFFSET = 5.5 * 60 * 60 * 1000
+
+        const startDate = new Date(Date.UTC(year,month-1,1)-IST_OFFSET)
+        const endDate = new Date(Date.UTC(year,month,1)-IST_OFFSET)
         console.log(startDate,endDate);
         
 
