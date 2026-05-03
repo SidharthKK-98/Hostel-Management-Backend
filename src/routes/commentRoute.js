@@ -60,7 +60,24 @@ commentRouter.post("/comment/add",userAuth,multerMiddleware.single("commentImg")
 commentRouter.get("/comment/get",async(req,res)=>{
     try{
 
-        const result = await Comment.find().populate("user" ,"firstName lastName")
+        const result = await Comment.find().populate("user" ,"firstName lastName photoUrl")
+        if(!result){
+            return res.status(400).json({message:"No comments added yet"})
+        }
+
+        res.status(200).json({message:"success",data:result})
+
+    }
+    catch(err){
+        res.status(500).json({message: "Server error",error:err.message})
+
+    }
+})
+
+commentRouter.get("/comment/get/:userId",userAuth,async(req,res)=>{
+    try{
+        const {userId} = req.params
+        const result = await Comment.find({user:userId}).populate("user" ,"firstName lastName photoUrl")
         if(!result){
             return res.status(400).json({message:"No comments added yet"})
         }
