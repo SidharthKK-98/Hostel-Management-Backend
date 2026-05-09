@@ -1,6 +1,7 @@
 const express = require("express")
 const foodSelectionRoute = express.Router()
 const FoodSelection = require("../models/foodSelection")
+const Rent = require("../models/rentConfig")
 
 const User= require("../models/user")
 const FoodMenu=require("../models/foodMenu")
@@ -175,7 +176,15 @@ foodSelectionRoute.get("/foodSelection/getHistory",userAuth,async(req,res)=>{
         }).populate("morning.foodId").populate("noon.foodId").populate("night.foodId")
         .sort({date:-1}).limit(4)
 
-        res.status(200).json({message:"success",data:menus})
+        const cleanedMenus = menus.map((menu) => ({
+            ...menu.toObject(),
+
+            morning: menu.morning.filter((item) => item.foodId),
+            noon: menu.noon.filter((item) => item.foodId),
+            night: menu.night.filter((item) => item.foodId),
+        }))
+
+        res.status(200).json({message:"success",data:cleanedMenus})
 
     }
      catch(err){
@@ -293,9 +302,12 @@ foodSelectionRoute.post("/foodSelction/getByUserId",userAuth,async(req,res)=>{
             }
         ])
 
-        const monthlyTotal = result[0]?.totalPrice || 0
+        const rentData = await Rent.findOne()
+        const rent = rentData?.rent || 0
+        const messPrice = result[0]?.totalPrice || 0 
+        const monthlyTotal = messPrice + rent
 
-        res.status(200).json({message:"result get succefully",data:monthlyTotal})
+        res.status(200).json({message:"result get succefully",data:{messPrice,monthlyTotal}})
 
 
     }
@@ -354,9 +366,16 @@ foodSelectionRoute.get("/foodSelction/getAmount/:userId",userAuth,async(req,res)
             }
         ])
 
-        const monthlyTotal = result[0]?.totalPrice || 0
+         const rentData = await Rent.findOne()
+        const rent = rentData?.rent || 0
+        const messPrice = result[0]?.totalPrice || 0 
+        const monthlyTotal = messPrice + rent
 
-        res.status(200).json({message:"result get succefully",data:monthlyTotal})
+        // const monthlyTotal = (result[0]?.totalPrice || 0) + rent
+
+        // const monthlyTotal = result[0]?.totalPrice || 0
+
+        res.status(200).json({message:"result get succefully",data:{messPrice,monthlyTotal}})
 
     }
     catch(err){

@@ -3,6 +3,7 @@ const paymentRoutes = express.Router()
 const RazorpayInstance = require("../utils/razorpay")
 const Payment = require("../models/payment")
 const User=require("../models/user")
+const mongoose = require("mongoose")
 
 const { userAuth } = require("../middlewares/auth")
 const { validateWebhookSignature } = require("razorpay/dist/utils/razorpay-utils")
@@ -120,7 +121,7 @@ paymentRoutes.get("/payment/verify/:year/:month",userAuth,async(req,res)=>{
         const monthNum = parseInt(month);
         const yearNum = parseInt(year)
 
-        console.log(userId,monthNum,yearNum);
+        // console.log(userId,monthNum,yearNum);
         
         const user = await User.findById(userId)
         if(!user){
@@ -142,5 +143,52 @@ paymentRoutes.get("/payment/verify/:year/:month",userAuth,async(req,res)=>{
         res.status(400).json({message:"something went wrong",error:err.message})
 
     }
+})
+
+paymentRoutes.get("/payment/getAllUsersPaymentStatus",userAuth,async(req,res)=>{
+
+    try{
+
+        const now = new Date()
+        const month = now.getMonth()+1
+        const year = now.getFullYear()
+        console.log(month);
+        
+
+        const users = await User.find()
+
+        const payments = await Payment.find({
+            month,
+            year,
+            status:"captured"
+        }).select("userId")
+
+        const paidSet = new Set(
+            payments.map(p=>p.userId.toString())
+        )
+
+        await User.updateMany({}, { $set: { isFeesPayed: false } })
+
+        const paidUserIds = [...paidSet].map(
+            id => new mongoose.Types.ObjectId(id)
+        )
+
+        console.log("paidUserIds:", paidUserIds);
+        await User.updateMany(
+                { _id: { $in: paidUserIds } },
+                { $set: { isFeesPayed: true } }
+                )
+
+        const result = await User.find({
+            _id:{$in:paidUserIds}
+        })
+        
+        return res.status(200).json({data:result,message:"success"})
+    }
+    catch(err){
+        res.status(400).json({message:"something went wrong",error:err.message})
+
+    }
+
 })
 module.exports = paymentRoutes

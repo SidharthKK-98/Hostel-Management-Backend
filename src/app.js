@@ -13,6 +13,7 @@ const complaintRouter = require("./routes/complaintRoute")
 const paymentRoutes = require("./routes/paymentRoute")
 const groceryRoute = require("./routes/grocery")
 const commentRouter = require("./routes/commentRoute")
+const rentRoute = require("./routes/rentRoute")
 
 app.use(
   cors({
@@ -35,6 +36,7 @@ app.use("/",complaintRouter)
 app.use("/",paymentRoutes)
 app.use("/",groceryRoute)
 app.use("/",commentRouter)
+app.use("/",rentRoute)
 
 
 

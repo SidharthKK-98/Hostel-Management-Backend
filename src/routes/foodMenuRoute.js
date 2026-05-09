@@ -1,4 +1,6 @@
 const express=require("express")
+const foodMenuRoute=express.Router()
+
 const { userAuth } = require("../middlewares/auth")
 const multerMiddleware = require("../middlewares/multer")
 const cloudinary=require("../config/cloudinary")
@@ -6,7 +8,6 @@ const FoodMenu=require("../models/foodMenu")
 const DailyMenu=require("../models/dailyMenu")
 const FoodSelection = require("../models/foodSelection")
 const fs=require("fs")
-foodMenuRoute=express.Router()
 
 
 foodMenuRoute.post("/foodMenu/addFoodItem",userAuth,multerMiddleware.single("foodImg"),async(req,res)=>{
