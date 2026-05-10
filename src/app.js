@@ -17,7 +17,7 @@ const rentRoute = require("./routes/rentRoute")
 
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin:[ "http://localhost:5173","https://hostel-management-frontend2.vercel.app"],
     credentials: true,    
   })
 );
