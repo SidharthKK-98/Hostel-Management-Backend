@@ -29,7 +29,6 @@ paymentRoutes.post("/payment/create",userAuth,async(req,res)=>{
             }
 
         })
-        // console.log(order)
 
         const payment = new Payment({
 
@@ -120,6 +119,8 @@ paymentRoutes.get("/payment/verify/:year/:month",userAuth,async(req,res)=>{
 
         const monthNum = parseInt(month);
         const yearNum = parseInt(year)
+
+        
 
         // console.log(userId,monthNum,yearNum);
         
