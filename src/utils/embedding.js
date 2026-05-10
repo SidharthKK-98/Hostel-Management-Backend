@@ -13,6 +13,13 @@ const getEmbedding = async(text)=>{
         taskType:"SEMANTIC_SIMILARITY"
     })
 
+     if (
+        !response.embeddings ||
+        !response.embeddings[0]?.values
+    ) {
+        throw new Error("Embedding generation failed")
+    }
+    
     return response.embeddings[0].values
 
 }

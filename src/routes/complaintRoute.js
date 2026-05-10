@@ -49,7 +49,6 @@ complaintRouter.post("/complaint/postIssue",userAuth,async(req,res)=>{
             category,
             newEmbedding
         })
-        // console.log("duplicate",duplicateCheck?.isDuplicate);
         
 
          if(duplicateCheck?.isDuplicate){

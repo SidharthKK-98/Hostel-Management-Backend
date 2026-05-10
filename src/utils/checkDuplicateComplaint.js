@@ -10,17 +10,29 @@ const checkDuplicateComplaint = async({
 
    try{
 
-         const existingComplaints = await Complaint.find({
+    const existingComplaints = await Complaint.find({
         roomNumber,
         category,
         status:{$ne:"RESOLVED"}
     }).select("subject +embedding")
 
+
     for(const compl of existingComplaints){
-        if(!compl.embedding || compl.embedding.length === 0) continue
+        if( !compl.embedding ||
+                !Array.isArray(compl.embedding) ||
+                compl.embedding.length === 0) continue
+
+         if (compl.embedding.length !== newEmbedding.length) {
+                continue
+            } 
 
         const score = cosineSimilarity(newEmbedding,compl.embedding)
 
+         if (!Number.isFinite(score)) {
+                continue
+            }
+            console.log(score);
+            
         if(score > 0.65){
             return {
                 isDuplicate:true,
