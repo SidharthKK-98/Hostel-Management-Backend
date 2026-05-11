@@ -64,13 +64,13 @@ paymentRoutes.post("/payment/webhook",async(req,res)=>{
         let prevMonth = now.getMonth()+1
         let prevYear = now.getFullYear()
 
-        prevMonth -= 1
+        
 
         if (prevMonth === 0) {
             prevMonth = 12
             prevYear -= 1
         }
-        prevMonth = prevMonth + 1
+
         const webhookSignature = req.headers["x-razorpay-signature"]
 
         const isWebhookValid = validateWebhookSignature(
@@ -106,8 +106,7 @@ paymentRoutes.post("/payment/webhook",async(req,res)=>{
 
         const user = await User.findById(payment.userId);
 
-        if (user && paymentDetails.status === "captured"&& paymentDetails.month === prevMonth &&
-                paymentDetails.year === prevYear) {
+        if (user && paymentDetails.status === "captured") {
 
             user.isFeesPayed = true;
             await user.save();
