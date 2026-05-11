@@ -47,6 +47,7 @@ connectDB().then(
         console.log("database connected");
         require("./cron/stockAlertCron")
         require("./cron/predictionCron")
+        require("./cron/isFeesPaidUpdaateCron")
         const PORT = process.env.PORT || 3000;
 
         app.listen(PORT,()=>{

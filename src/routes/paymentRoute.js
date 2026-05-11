@@ -59,7 +59,17 @@ paymentRoutes.post("/payment/create",userAuth,async(req,res)=>{
 paymentRoutes.post("/payment/webhook",async(req,res)=>{
     try{
 
-        const webhookSignature = req.headers["x-razorpay-signature"];
+        const now = new Date()
+
+        let prevMonth = now.getMonth()
+        let prevYear = now.getFullYear()
+
+        if (prevMonth === 0) {
+            prevMonth = 12
+            prevYear -= 1
+        }
+
+        const webhookSignature = req.headers["x-razorpay-signature"]
 
         const isWebhookValid = validateWebhookSignature(
             JSON.stringify(req.body),
@@ -80,7 +90,6 @@ paymentRoutes.post("/payment/webhook",async(req,res)=>{
 
         const paymentDetails = req.body.payload.payment.entity
 
-        // console.log(paymentDetails);
 
         const payment = await Payment.findOne({
             orderId: paymentDetails.order_id,
@@ -95,7 +104,9 @@ paymentRoutes.post("/payment/webhook",async(req,res)=>{
 
         const user = await User.findById(payment.userId);
 
-        if (user && paymentDetails.status === "captured") {
+        if (user && paymentDetails.status === "captured"&& paymentDetails.month === prevMonth &&
+                paymentDetails.year === prevYear) {
+
             user.isFeesPayed = true;
             await user.save();
         }
@@ -120,10 +131,6 @@ paymentRoutes.get("/payment/verify/:year/:month",userAuth,async(req,res)=>{
         const monthNum = parseInt(month);
         const yearNum = parseInt(year)
 
-        
-
-        // console.log(userId,monthNum,yearNum);
-        
         const user = await User.findById(userId)
         if(!user){
             return res.status(400).json({message:"No user found"})
@@ -151,10 +158,14 @@ paymentRoutes.get("/payment/getAllUsersPaymentStatus",userAuth,async(req,res)=>{
     try{
 
         const now = new Date()
-        const month = now.getMonth()+1
+        const month = now.getMonth()
         const year = now.getFullYear()
         console.log(month);
         
+        if (month === 0) {
+            month = 12;
+            year -= 1;
+            }
 
         const users = await User.find()
 
