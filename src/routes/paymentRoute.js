@@ -61,14 +61,16 @@ paymentRoutes.post("/payment/webhook",async(req,res)=>{
 
         const now = new Date()
 
-        let prevMonth = now.getMonth()
+        let prevMonth = now.getMonth()+1
         let prevYear = now.getFullYear()
+
+        prevMonth -= 1
 
         if (prevMonth === 0) {
             prevMonth = 12
             prevYear -= 1
         }
-
+        prevMonth = prevMonth + 1
         const webhookSignature = req.headers["x-razorpay-signature"]
 
         const isWebhookValid = validateWebhookSignature(
