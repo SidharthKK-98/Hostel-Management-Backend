@@ -136,6 +136,18 @@ paymentRoutes.get("/payment/verify/:year/:month",userAuth,async(req,res)=>{
             return res.status(400).json({message:"No user found"})
         }
 
+        const userJoinDate = new Date(user.createdAt);
+        const joinMonth = userJoinDate.getMonth() + 1;
+        const joinYear = userJoinDate.getFullYear();
+
+        if(  yearNum < joinYear ||
+            (yearNum === joinYear && monthNum < joinMonth)
+            ) {
+            return res.status(403).json({
+                message: "Payment not allowed before user joined month"
+            });
+            }
+
         const payment = await Payment.find({userId,month:monthNum,year:yearNum})
         console.log(payment);
         
