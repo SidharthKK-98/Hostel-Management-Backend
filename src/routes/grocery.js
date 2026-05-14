@@ -5,8 +5,9 @@ const Grocery = require("../models/groceryItems")
 const GroceryUsage = require("../models/groceryUsage")
 const { userAuth } = require("../middlewares/auth")
 const predictStockOutDate = require("../utils/predictStockOutDate")
+const isAdmin = require("../middlewares/isAdmin")
 
-groceryRoute.post("/grocery/add",userAuth,async(req,res)=>{
+groceryRoute.post("/grocery/add",userAuth,isAdmin,async(req,res)=>{
 
     try{
 
@@ -54,7 +55,7 @@ groceryRoute.get("/grocery/getItems",userAuth,async(req,res)=>{
 
 })
 
-groceryRoute.patch("/grocery/restore",userAuth,async(req,res)=>{
+groceryRoute.patch("/grocery/restore",userAuth,isAdmin,async(req,res)=>{
 
     try{
 
@@ -154,7 +155,7 @@ groceryRoute.post("/grocery/takeGrocery",userAuth,async(req,res)=>{
 
 })
 
-groceryRoute.patch("/grocery/update",userAuth,async(req,res)=>{
+groceryRoute.patch("/grocery/update",userAuth,isAdmin,async(req,res)=>{
         try{
 
             const {_id,name,unit,minStock} = req.body
@@ -187,7 +188,7 @@ groceryRoute.patch("/grocery/update",userAuth,async(req,res)=>{
         }
 })
 
-groceryRoute.delete("/grocery/remove",userAuth,async(req,res)=>{
+groceryRoute.delete("/grocery/remove",userAuth,isAdmin,async(req,res)=>{
 
     try{
             const {_id} = req.body

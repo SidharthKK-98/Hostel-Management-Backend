@@ -6,6 +6,7 @@ const multerMiddleware=require("../middlewares/multer")
 const User=require("../models/user")
 const cloudinary=require("../config/cloudinary")
 const fs=require("fs")
+const isAdmin = require("../middlewares/isAdmin")
 
 
 profileRouter.get("/profile/view",userAuth,async(req,res)=>{
@@ -93,7 +94,7 @@ profileRouter.patch("/profile/edit",userAuth,multerMiddleware.single("userImg"),
 
 })
 
-profileRouter.get("/profile/getAllUsers",userAuth,async(req,res)=>{
+profileRouter.get("/profile/getAllUsers",userAuth,isAdmin,async(req,res)=>{
     try{
 
         const Users = await User.find({
