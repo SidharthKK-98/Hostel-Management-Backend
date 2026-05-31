@@ -171,17 +171,16 @@ paymentRoutes.get("/payment/getAllUsersPaymentStatus",userAuth,async(req,res)=>{
     try{
 
         const now = new Date()
-        const month = now.getMonth()
-        const year = now.getFullYear()
-        console.log(month);
+        let month = now.getMonth()
+        let year = now.getFullYear()
         
         if (month === 0) {
             month = 12;
             year -= 1;
             }
 
-        const users = await User.find()
-
+           
+            
         const payments = await Payment.find({
             month,
             year,
@@ -198,7 +197,8 @@ paymentRoutes.get("/payment/getAllUsersPaymentStatus",userAuth,async(req,res)=>{
             id => new mongoose.Types.ObjectId(id)
         )
 
-        console.log("paidUserIds:", paidUserIds);
+         
+
         await User.updateMany(
                 { _id: { $in: paidUserIds } },
                 { $set: { isFeesPayed: true } }
@@ -208,6 +208,7 @@ paymentRoutes.get("/payment/getAllUsersPaymentStatus",userAuth,async(req,res)=>{
             _id:{$in:paidUserIds}
         })
         
+
         return res.status(200).json({data:result,message:"success"})
     }
     catch(err){
